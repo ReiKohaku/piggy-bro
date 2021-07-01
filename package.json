@@ -1,0 +1,20 @@
+{
+  "name": "piggy-bro",
+  "version": "1.0.0",
+  "description": "An open-source wechaty based chatting bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node build/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "wechaty",
+    "bot"
+  ],
+  "author": "ReiKohaku",
+  "license": "MIT",
+  "dependencies": {
+    "wechaty": "^0.62.3",
+    "wechaty-plugin-contrib": "^0.14.23"
+  }
+}
