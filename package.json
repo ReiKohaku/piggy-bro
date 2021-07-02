@@ -14,6 +14,9 @@
   "author": "ReiKohaku",
   "license": "MIT",
   "dependencies": {
+    "@types/sqlite3": "^3.1.7",
+    "axios": "^0.21.1",
+    "sqlite3": "^5.0.2",
     "wechaty": "^0.62.3",
     "wechaty-plugin-contrib": "^0.14.23"
   }
