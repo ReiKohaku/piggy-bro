@@ -23,6 +23,7 @@ wechaty.on("login", (user: Contact) => {
     console.log(`User ${user.name()} logged in.`)
 })
 wechaty.on("message", async (message: Message) => {
+    if (message.self()) return
     const {mp} = await import("./interceptor")
     const cmdResult = await mp.process(message)
     if (cmdResult) await message.say(cmdResult)
