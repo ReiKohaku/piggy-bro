@@ -28,7 +28,7 @@ export default class Template {
         if (ori) return ori
     }
 
-    public use(name: string, args: Record<string, any> | Array<any>): string {
+    public use(name: string, args?: Record<string, any> | Array<any>): string {
         if (!this.templates[name]) {
             console.warn("Cannot find key \"" + name + "\", will return original key.")
             return name
@@ -37,10 +37,11 @@ export default class Template {
         const value: string = Array.isArray(originalValue) ?
             originalValue[Math.floor(Math.random() * originalValue.length)] :
             originalValue
-        return value.replace(/{.*?}/g, function (match) {
+        if (args) return value.replace(/{.*?}/g, function (match) {
             const matchedArg = match.match(/{(.*)}/)[1]
             if (args[matchedArg]) return args[matchedArg]
             else return match
         })
+        else return value
     }
 }
