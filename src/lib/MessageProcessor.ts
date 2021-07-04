@@ -6,6 +6,7 @@
   理器。
 */
 import {Message} from "wechaty";
+import {template} from "../bot";
 
 type Interceptor =
     ((message: Message) => string) |
@@ -30,8 +31,14 @@ export class MessageProcessor {
         }
         for (const f of this.interceptors) {
             if (!f) continue
-            const result = await f(message)
-            if (typeof result === "string") return result
+            try {
+                const result = await f(message)
+                if (typeof result === "string") return result
+            } catch (e) {
+                console.warn(template.use("on.error"))
+                console.warn(e)
+            }
+
         }
         return null
     }
