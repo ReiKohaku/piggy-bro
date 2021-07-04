@@ -2,18 +2,20 @@
 // 同时也支持运行多个bot实例
 import ChildProcess from "child_process"
 import Path from "path"
+import "./better-console"
+
 function createBot() {
     const botProcess = ChildProcess.fork(Path.join(__dirname, "./bot"))
     botProcess.on("exit", function (code: number) {
-        console.log("Bot exited with exit code " + code)
+        console.log("机器人进程已退出，退出码：" + code)
         if (code !== 0) {
-            console.log("Restarting...")
+            console.log("正在重新启动……")
             createBot()
         }
     })
     botProcess.on("error", function (e) {
-        console.log("Bot error: " + e)
-        console.log("Restarting...")
+        console.log("机器人进程发生错误：" + e)
+        console.log("正在重新启动……")
         createBot()
     })
 }

@@ -21,6 +21,7 @@ template.add("on.scan.link", "请在浏览器内打开下方链接，使用机�
 template.add("on.scan.terminal", "您也可以扫描下方的二维码：\n{qrcode}")
 template.add("on.scan.confirm", "已扫码，请确认登录。")
 template.add("on.login", "用户 {name} 已登录。")
+template.add("on.logout", "用户 {name} 已登出。")
 
 const wechaty = Wechaty.instance({
     name: "PiggyBro"
@@ -46,6 +47,11 @@ wechaty.on("scan", (qrcode, status) => {
 })
 wechaty.on("login", (user: Contact) => {
     console.log(template.use("on.login", {
+        name: `\x1B[43m${user.name()}\x1b[0m`
+    }))
+})
+wechaty.on("logout", (user: Contact) => {
+    console.log(template.use("on.logout", {
         name: `\x1B[43m${user.name()}\x1b[0m`
     }))
 })
