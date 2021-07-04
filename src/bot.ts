@@ -16,12 +16,8 @@ import Template from "./lib/Template";
 const template = new Template()
 export {template}
 
-template.add("on.start", "机器人应用已启动。")
-template.add("on.scan.link", "请在浏览器内打开下方链接，使用机器人的手机微信扫描二维码：")
-template.add("on.scan.terminal", "您也可以扫描下方的二维码：\n{qrcode}")
-template.add("on.scan.confirm", "已扫码，请确认登录。")
-template.add("on.login", "用户 {name} 已登录。")
-template.add("on.logout", "用户 {name} 已登出。")
+// 给公共模板设置默认值
+import "./template"
 
 const wechaty = Wechaty.instance({
     name: "PiggyBro"
@@ -60,6 +56,10 @@ wechaty.on("message", async (message: Message) => {
     const {mp} = await import("./interceptor")
     const cmdResult = await mp.process(message)
     if (cmdResult) await message.say(cmdResult)
+})
+wechaty.on("error", async (error) => {
+    console.error(template.use("on.error"))
+    console.error(error)
 })
 wechaty.start().then(() => {
     console.log(template.use("on.start"))
