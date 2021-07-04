@@ -14,8 +14,19 @@ type Interceptor =
     ((message: Message) => Promise<string>) |
     ((message: Message) => Promise<string | void>)
 
+interface EventMap {
+    'error'(message: Message, error: any): any
+}
+type EventName = keyof EventMap
+
 export class MessageProcessor {
     private interceptors: Array<Interceptor> = []
+    private events: EventMap = {
+        'error'(message, error) {
+            console.warn(template.use("on.error"))
+            console.warn(error)
+        }
+    }
 
     public interceptor(interceptor: Interceptor): void {
         if (!this.interceptors.includes(interceptor)) this.interceptors.push(interceptor)
@@ -35,11 +46,15 @@ export class MessageProcessor {
                 const result = await f(message)
                 if (typeof result === "string") return result
             } catch (e) {
-                console.warn(template.use("on.error"))
-                console.warn(e)
+                const result = this.events.error(message, e)
+                if (typeof result === "string") return result
             }
 
         }
         return null
+    }
+
+    public on<K extends EventName>(event: K, listener: EventMap[K]) {
+        this.events[event] = listener
     }
 }
