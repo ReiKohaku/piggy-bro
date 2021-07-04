@@ -5,3 +5,4 @@ build
 .idea
 .vscode
 data
+*.memory-card.json
