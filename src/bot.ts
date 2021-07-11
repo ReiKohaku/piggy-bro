@@ -19,6 +19,8 @@ export {template}
 // 给公共模板设置默认值
 import "./template"
 
+import {mp} from "./interceptor";
+
 const wechaty = Wechaty.instance({
     name: "PiggyBro"
 })
@@ -37,6 +39,9 @@ wechaty.on("scan", (qrcode, status) => {
         case 3:
             console.log(template.use("on.scan.confirm"))
             break
+        case 4:
+            console.log(template.use("on.scan.login"))
+            break
         default:
             console.log(status, qrcode)
     }
@@ -53,7 +58,6 @@ wechaty.on("logout", (user: Contact) => {
 })
 wechaty.on("message", async (message: Message) => {
     if (message.self()) return
-    const {mp} = await import("./interceptor")
     const cmdResult = await mp.process(message)
     if (cmdResult) await message.say(cmdResult)
 })
