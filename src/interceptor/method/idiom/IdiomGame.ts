@@ -39,7 +39,6 @@ export default class IdiomGame<T> {
     }
 
     public lastIdiom(): T {
-        console.log(this.$stack)
         return this.$stack[this.$stack.length - 1]
     }
 
