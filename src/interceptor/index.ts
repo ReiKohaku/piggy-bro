@@ -17,6 +17,8 @@ mp.on("error", (message, error) => {
 })
 
 import hello from "./method/hello"
+import idiom from "./method/idiom"
 mp.interceptor(hello)
+mp.interceptor(idiom)
 
 export {mp}

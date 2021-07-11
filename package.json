@@ -14,11 +14,16 @@
   "author": "ReiKohaku",
   "license": "MIT",
   "dependencies": {
-    "@types/sqlite3": "^3.1.7",
     "axios": "^0.21.1",
+    "iconv-lite": "^0.4.24",
     "node-emoji": "^1.10.0",
+    "pinyin": "^2.10.2",
     "qrcode-terminal": "^0.12.0",
     "sqlite3": "^5.0.2",
     "wechaty": "^0.62.3"
+  },
+  "devDependencies": {
+    "@types/pinyin": "^2.8.3",
+    "@types/sqlite3": "^3.1.7"
   }
 }
