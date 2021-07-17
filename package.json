@@ -16,6 +16,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "iconv-lite": "^0.4.24",
+    "NeteaseCloudMusicApi": "^4.0.17",
     "node-emoji": "^1.10.0",
     "pinyin": "^2.10.2",
     "qrcode-terminal": "^0.12.0",
