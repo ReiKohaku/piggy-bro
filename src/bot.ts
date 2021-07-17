@@ -1,6 +1,6 @@
 import "./better-console"
 
-import {Wechaty, Message, Contact} from "wechaty"
+import {Wechaty, Message, Contact, FileBox, UrlLink, MiniProgram} from "wechaty"
 import qrcodeTerminal from "qrcode-terminal";
 
 import path from "path"
@@ -59,7 +59,12 @@ wechaty.on("logout", (user: Contact) => {
 wechaty.on("message", async (message: Message) => {
     if (message.self()) return
     const cmdResult = await mp.process(message)
-    if (cmdResult) await message.say(cmdResult)
+    if (typeof cmdResult === "string") await message.say(cmdResult)
+    else if (typeof cmdResult === "number") await message.say(cmdResult)
+    else if (cmdResult instanceof Contact) await message.say(cmdResult)
+    else if (cmdResult instanceof FileBox) await message.say(cmdResult)
+    else if (cmdResult instanceof UrlLink) await message.say(cmdResult)
+    else if (cmdResult instanceof MiniProgram) await message.say(cmdResult)
 })
 wechaty.on("error", async (error) => {
     console.error(template.use("on.error"))

@@ -5,14 +5,16 @@
   匹配到任何命令，消息会忽略，原样传递给下个处
   理器。
 */
-import {Message} from "wechaty";
+import {Contact, Message, FileBox, UrlLink, MiniProgram} from "wechaty";
 import {template} from "../bot";
 
+type MessageSayType = string | number | Contact | FileBox | UrlLink | MiniProgram
+
 type Interceptor =
-    ((message: Message) => string) |
-    ((message: Message) => string | void) |
-    ((message: Message) => Promise<string>) |
-    ((message: Message) => Promise<string | void>)
+    ((message: Message) => MessageSayType) |
+    ((message: Message) => MessageSayType | void) |
+    ((message: Message) => Promise<MessageSayType>) |
+    ((message: Message) => Promise<MessageSayType | void>)
 
 interface EventMap {
     'error'(message: Message, error: any): any
@@ -35,19 +37,18 @@ export class MessageProcessor {
      * 如果这个方法返回了文本，则将这个消息发送给来到时的会话
      * 否则，传递消息给下一个处理器
      */
-    public async process(message: Message): Promise<string | null> {
-        if (message.age() > 60) {
-            // 消息到来太晚，不做响应
-            return ""
-        }
+    public async process(message: Message): Promise<MessageSayType | null> {
+        // 消息到来太晚，不做响应
+        if (message.age() > 60) return null
+
         for (const f of this.interceptors) {
             if (!f) continue
             try {
                 const result = await f(message)
-                if (typeof result === "string") return result
+                if (typeof result === "number" || result) return result
             } catch (e) {
                 const result = this.events.error(message, e)
-                if (typeof result === "string") return result
+                if (typeof result === "number" || result) return result
             }
 
         }
