@@ -18,10 +18,10 @@ export default class SqliteTemplate {
             const db = new Database(this.file)
             db.run(sql, params, function (err: Error | null) {
                 const {changes, lastID} = this
+                if (err) reject(err)
+                else resolve({changes, lastID})
                 db.close(function (closeErr) {
                     if (closeErr) console.error(closeErr)
-                    if (err) reject(err)
-                    else resolve({changes, lastID})
                 })
             })
         })
@@ -31,10 +31,10 @@ export default class SqliteTemplate {
         return new Promise<T>((resolve, reject) => {
             const db = new Database(this.file)
             db.get(sql, params, function (err: Error | null, row: any) {
-                db.close(function (err) {
-                    console.error(err)
-                    if (err) reject(err)
-                    else resolve(row as T)
+                if (err) reject(err)
+                else resolve(row as T)
+                db.close(function (closeErr) {
+                    if (closeErr) console.error(closeErr)
                 })
             })
         })
@@ -44,10 +44,10 @@ export default class SqliteTemplate {
         return new Promise<T[]>((resolve, reject) => {
             const db = new Database(this.file)
             db.get(sql, params, function (err: Error | null, rows: any[]) {
-                db.close(function (err) {
-                    console.error(err)
-                    if (err) reject(err)
-                    else resolve(rows as T[])
+                if (err) reject(err)
+                else resolve(rows as T[])
+                db.close(function (closeErr) {
+                    if (closeErr) console.error(closeErr)
                 })
             })
         })
