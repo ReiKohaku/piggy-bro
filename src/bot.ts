@@ -12,6 +12,10 @@ import SqliteTemplate from "./lib/SqliteTemplate";
 const sqliteTemplate = new SqliteTemplate(path.join(__data_dir, "./database.db"))
 export {sqliteTemplate}
 
+import CallLimiter from "./lib/CallLimiter";
+const callLimiter = new CallLimiter(sqliteTemplate)
+export {callLimiter}
+
 import Template from "./lib/Template";
 const template = new Template()
 export {template}
