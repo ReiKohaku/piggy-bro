@@ -152,6 +152,7 @@ export default async function (message: Message): Promise<string | undefined> {
                         score: scoreResult
                     }))
                 }
+                delete gameSpace[spaceId]
             })
             await gameSpace[spaceId].start()
             return ""
