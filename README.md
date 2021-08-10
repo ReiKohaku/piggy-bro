@@ -1,6 +1,18 @@
+<p align="center">
+  <img src="icon.png" width="200" height="200" alt="piggy-bro">
+</p>
+
+<div align="center">
+
 # 二师兄逗乐机器人
 
 基于 Wechaty 开发开源的二师兄社群逗乐机器人。
+
+</div>
+
+<p align="center">
+  <a href="docs/README.md" alt="docs">文档</a>
+</p>
 
 ## 运行环境
 
