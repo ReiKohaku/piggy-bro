@@ -38,9 +38,6 @@ export class MessageProcessor {
      * 否则，传递消息给下一个处理器
      */
     public async process(message: Message): Promise<MessageSayType | null> {
-        // 消息到来太晚，不做响应
-        if (message.age() > 60) return null
-
         for (const f of this.interceptors) {
             if (!f) continue
             try {
