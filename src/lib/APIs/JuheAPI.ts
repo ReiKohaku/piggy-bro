@@ -11,8 +11,8 @@ export function getAPIKey(name: string): string {
     try {
         const data = fs.readFileSync(path.join(__data_dir, "./api/juheapi.json"), "utf-8")
         const dataParsed = JSON.parse(data)
-        if (!typeof dataParsed.key) throw new Error("Property \"key\" not defined")
-        if (!typeof dataParsed.key[name]) throw new Error("Property \"key." + name + "\" not defined")
+        if (!dataParsed.key) throw new Error("Property \"key\" not defined")
+        if (!dataParsed.key[name]) throw new Error("Property \"key." + name + "\" not defined")
         if (typeof dataParsed.key[name] !== "string")
             throw new Error("Property \"key." + name + "\" is not string")
         return dataParsed.key[name]

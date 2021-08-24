@@ -6,7 +6,7 @@ export function getKey(): string {
     try {
         const data = fs.readFileSync(path.join(__data_dir, "./api/tianapi.json"), "utf-8")
         const dataParsed = JSON.parse(data)
-        if (!typeof dataParsed.key) throw new Error("Property \"key\" not defined")
+        if (!dataParsed.key) throw new Error("Property \"key\" not defined")
         if (typeof dataParsed.key !== "string") throw new Error("Property \"key\" is not string")
         return dataParsed.key
     } catch (e) {
