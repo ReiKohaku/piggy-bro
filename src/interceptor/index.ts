@@ -22,11 +22,14 @@ import joke from "./method/joke"
 import weibo from "./method/weibo"
 import weather from "./method/weather"
 import neteaseCloudMusic from "./method/netease-cloud-music"
+import wordPuzzle from "./method/word-puzzle";
+
 mp.interceptor(hello)
 mp.interceptor(idiom)
 mp.interceptor(joke)
 mp.interceptor(weibo)
 mp.interceptor(weather)
 mp.interceptor(neteaseCloudMusic)
+mp.interceptor(wordPuzzle)
 
 export {mp}

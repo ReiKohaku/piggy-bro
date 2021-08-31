@@ -1,6 +1,7 @@
 import NeteaseCloudMusic, {SearchType} from "NeteaseCloudMusicApi"
-import {Message, UrlLink} from "wechaty";
+import {UrlLink} from "wechaty";
 import {template} from "../../../bot";
+import Interceptor from "../../Interceptor";
 
 // 这个方法用于解析搜索参数
 function getSearchArgs(text: string): null | { type: SearchType, keywords: string } {
@@ -197,9 +198,15 @@ namespace NeteaseCloudMusicTypes {
     }
 }
 
-export default async function (message: Message) {
-    const searchArgs = getSearchArgs(message.text())
-    if (/^二师兄/.test(message.text()) && searchArgs) {
+const neteaseMusicInterceptor = new Interceptor()
+    .check(message => {
+        const searchArgs = getSearchArgs(message.text())
+        if (/^二师兄/.test(message.text()) && searchArgs) {
+            return {searchArgs}
+        }
+    })
+    .handler(async (message, checkerArgs: { searchArgs: {type: SearchType, keywords: string} }) => {
+        const {searchArgs} = checkerArgs
         // 调用搜索API
         const searchResult: NeteaseCloudMusicTypes.SearchResponse = (await NeteaseCloudMusic.search({
             ...searchArgs
@@ -230,6 +237,7 @@ export default async function (message: Message) {
                 } catch (e) {
                     // 发送失败时，回落到文本消息
                     // 注：不明白为什么wechaty-puppet-wechat不能发UrlLink……看说明应该可以发才对，但输出是不支持……
+                    // 2021-08-31：后来看了看文档，web协议不支持，那没事了
                     console.warn("Send UrlLink failed, fallback to text message.")
                     console.warn(e)
                     await message.say(template.use("netease-cloud-music.search.success", {title, artists, url}))
@@ -240,5 +248,5 @@ export default async function (message: Message) {
         return template.use("netease-cloud-music.search.failed", {
             search: searchArgs.keywords
         })
-    }
-}
+    })
+export default neteaseMusicInterceptor

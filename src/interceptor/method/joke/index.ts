@@ -3,7 +3,6 @@
  * 本文件提供讲笑话的实现，默认提供的是 聚合数据 API的实现。
  * 如果需要自己扩展实现，可以参照默认实现编写函数。
  */
-import {Message} from "wechaty";
 import {template} from "../../../bot";
 
 template.add("joke.success", [
@@ -11,20 +10,21 @@ template.add("joke.success", [
     "笑话来咯：<br/>{content}",
     "行，给老板讲个段子：<br/>{content}"
 ])
+template.add("joke.failed", "哎呀，二师兄没找到合适的笑话。等会再来试试？")
 
 import JuheAPIJoke from "./juheapi"
+import Interceptor from "../../Interceptor";
 
-export default async function (message: Message) {
-    if (message.text().match(/^(二师兄.*)讲个?(笑话|段子)/)) {
-        try {
-            const result: string = await JuheAPIJoke()
-            if (result && result.length > 0) {
-                return template.use("joke.success", {
-                    content: result
-                })
-            }
-        } catch (e) {
-            return e.toString()
+const jokeInterceptor = new Interceptor()
+    .check(message => /^(二师兄.*)讲个?(笑话|段子)/.test(message.text()))
+    .handler(async () => {
+        const result: string = await JuheAPIJoke()
+        if (result && result.length > 0) {
+            return template.use("joke.success", {
+                content: result
+            })
+        } else {
+            return template.use("joke.failed")
         }
-    }
-}
+    })
+export default jokeInterceptor

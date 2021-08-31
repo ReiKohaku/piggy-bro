@@ -1,9 +1,13 @@
-import {Message} from "wechaty";
 import {template} from "../../bot";
+import Interceptor from "../Interceptor";
 
 template.add("helloWorld", "Hello Wechaty!")
 
-export default function (message: Message) {
-    if (/^test$/.test(message.text()))
+const HelloInterceptor = new Interceptor()
+    .check(message => {
+        return /^test$/.test(message.text())
+    })
+    .handler(() => {
         return template.use("helloWorld")
-}
+    })
+export default HelloInterceptor

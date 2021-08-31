@@ -2,9 +2,6 @@
  * 热搜查询
  * 提供新浪微博实时热搜查询，默认提供的是挖数据（wapi）和天行数据（TianAPI）的实现。
  */
-
-import {Message} from "wechaty";
-
 const Emoji = require("node-emoji")
 
 export interface HotKey {
@@ -25,11 +22,13 @@ template.add("weibo.success", [
 
 // 默认使用WAPI查询。如果需要自定义查询实现，请参照WAPI实现或TianAPI实现编写。
 import WAPIHotSearch from "./wapi"
+import Interceptor from "../../Interceptor";
 // import TianAPIWeiboHot from "./tianapi"
 
-export default async function (message: Message) {
-    if (/^二师兄/.test(message.text()) &&
-        /([查看有].*?热搜|.*?热搜.*?[有是].*?)/.test(message.text())) {
+const weiboInterceptor = new Interceptor()
+    .check(message => {
+        if (/^二师兄/.test(message.text()) && /([查看有].*?热搜|.*?热搜.*?[有是].*?)/.test(message.text())) return true
+    }).handler(async () => {
         const hotSearchList = await WAPIHotSearch()
         // const hotSearchList = await TianAPIWeiboHot()
         return template.use("weibo.success", {
@@ -37,6 +36,5 @@ export default async function (message: Message) {
                 .map(h => `${h.key}${h.isNew ? Emoji.get("new") : ""}${h.isHot ? Emoji.get("fire") : ""}${h.isExplosive ? Emoji.get("boom") : ""}${h.isBoiled ? Emoji.get("hotsprings") : ""}`)
                 .join("<br/>")
         })
-    }
-    return undefined
-}
+    })
+export default weiboInterceptor

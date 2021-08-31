@@ -1,9 +1,9 @@
-import {Message} from "wechaty";
 import fs from "fs";
 import {__data_dir, template} from "../../../bot";
 import path from "path";
 import pinyin from "pinyin";
 import IdiomGame from "./IdiomGame";
+import Interceptor from "../../Interceptor";
 
 const Emoji = require("node-emoji");
 
@@ -79,92 +79,110 @@ template.add("idiom.game.botWin", [
     "没人能答上来了吗？那么二师兄赢了哦。<br/>本轮得分：<br/>{score}",
 ])
 
-export default async function (message: Message): Promise<string | undefined> {
-    const contact = message.talker()
-    const room = message.room()
-    const spaceId = room ?
-        `room_${room.id}` :
-        `contact_${contact.id}`
-    if (/^二师兄/.test(message.text()) &&
-        /成语接龙/.test(message.text())) {
-        if (!idiomList) return undefined
-        if (!gameSpace[spaceId] || gameSpace[spaceId].status === "idle") {
-            gameSpace[spaceId] = new IdiomGame()
-            const startIdiom = idiomList[Math.floor(Math.random() * idiomList.length)]
-            gameSpace[spaceId].on("start", async () => {
-                gameSpace[spaceId].push(startIdiom)
-                await message.say(template.use("idiom.game.start", {
-                    idiom: startIdiom.name
-                }))
-                gameSpace[spaceId].startTimer()
-            })
-            gameSpace[spaceId].on("answer", async (answer) => {
-                const lastIdiom = gameSpace[spaceId].lastIdiom()
-                const idiom = findIdiom(answer.content)
-                if (idiom && isEndToEnd(lastIdiom, idiom)) {
-                    gameSpace[spaceId].pause()
-                    gameSpace[spaceId].stopTimer()
-
-                    // 加分
-                    gameSpace[spaceId].push(idiom)
-                    gameSpace[spaceId].addScore(message.talker().id, message.talker().name())
-                    // 接龙
-                    let nextIdiom, count = 0
-                    do {
-                        nextIdiom = shuffleFindIdiomByFirstPinyin(idiom.pinyin[idiom.pinyin.length - 1][count])
-                        count++
-                    } while (!nextIdiom && count < idiom.pinyin[idiom.pinyin.length - 1].length)
-                    if (nextIdiom) {
-                        gameSpace[spaceId].push(nextIdiom)
-                        await message.say(template.use("idiom.game.next", {
-                            idiom: nextIdiom.name
-                        }))
-                        gameSpace[spaceId].startTimer()
-                        gameSpace[spaceId].continue()
-                    } else {
-                        await gameSpace[spaceId].end("player")
-                    }
-                    return true
-                }
-            })
-            gameSpace[spaceId].on("end", async (winner: string = "bot") => {
-                gameSpace[spaceId].stopTimer()
-                const scoreList = gameSpace[spaceId].getAllScore()
-                const scoreArray: { name: string, score: number }[] = []
-                for (const i in scoreList)
-                    if (scoreList.hasOwnProperty(i))
-                        scoreArray.push({name: scoreList[i].name, score: scoreList[i].score})
-                scoreArray.sort((a, b) => b.score - a.score)
-                let scoreResult = scoreArray.length > 0 ? "" : "没有人得分"
-                scoreArray.forEach((s, i, a) => {
-                    if (i === 0) scoreResult += Emoji.get("first_place_medal")
-                    else if (i === 1) scoreResult += Emoji.get("second_place_medal")
-                    else if (i === 2) scoreResult += Emoji.get("third_place_medal")
-                    scoreResult += `${s.name}：${s.score}分`
-                    if (i + 1 < a.length) scoreResult += "<br/>"
-                })
-                if (winner === "bot") {
-                    await message.say(template.use("idiom.game.botWin", {
-                        score: scoreResult
-                    }))
-                } else if (winner === "player") {
-                    await message.say(template.use("idiom.game.botWin", {
-                        score: scoreResult
-                    }))
-                }
-                delete gameSpace[spaceId]
-            })
-            await gameSpace[spaceId].start()
-            return ""
-        } else {
-            return template.use("idiom.game.playing")
+const idiomInterceptor = new Interceptor()
+    .check(message => {
+        const contact = message.talker()
+        const room = message.room()
+        const spaceId = room ?
+            `room_${room.id}` :
+            `contact_${contact.id}`
+        const args = { contact, room, spaceId }
+        if (/^二师兄/.test(message.text()) &&
+            /成语接龙/.test(message.text())) {
+            return {
+                ...args,
+                action: "start"
+            }
+        } else if (gameSpace[spaceId] && gameSpace[spaceId].status === "start") {
+            return {
+                ...args,
+                action: "answer",
+                content: message.text()
+            }
         }
-    } else if (gameSpace[spaceId] && gameSpace[spaceId].status === "start") {
-        const result = await gameSpace[spaceId].answer({
-            content: message.text(),
-            userId: message.talker().id,
-            userName: message.talker().name()
-        })
-        if (result) return ""
-    }
-}
+    })
+    .handler(async (message, checkerArgs) => {
+        const {spaceId, action, content} = checkerArgs
+        if (action === "start") {
+            if (!idiomList) return undefined
+            if (!gameSpace[spaceId] || gameSpace[spaceId].status === "idle") {
+                gameSpace[spaceId] = new IdiomGame()
+                const startIdiom = idiomList[Math.floor(Math.random() * idiomList.length)]
+                gameSpace[spaceId].on("start", async () => {
+                    gameSpace[spaceId].push(startIdiom)
+                    await message.say(template.use("idiom.game.start", {
+                        idiom: startIdiom.name
+                    }))
+                    gameSpace[spaceId].startTimer()
+                })
+                gameSpace[spaceId].on("answer", async (answer) => {
+                    const lastIdiom = gameSpace[spaceId].lastIdiom()
+                    const idiom = findIdiom(answer.content)
+                    if (idiom && isEndToEnd(lastIdiom, idiom)) {
+                        gameSpace[spaceId].pause()
+                        gameSpace[spaceId].stopTimer()
+
+                        // 加分
+                        gameSpace[spaceId].push(idiom)
+                        gameSpace[spaceId].addScore(message.talker().id, message.talker().name())
+                        // 接龙
+                        let nextIdiom, count = 0
+                        do {
+                            nextIdiom = shuffleFindIdiomByFirstPinyin(idiom.pinyin[idiom.pinyin.length - 1][count])
+                            count++
+                        } while (!nextIdiom && count < idiom.pinyin[idiom.pinyin.length - 1].length)
+                        if (nextIdiom) {
+                            gameSpace[spaceId].push(nextIdiom)
+                            await message.say(template.use("idiom.game.next", {
+                                idiom: nextIdiom.name
+                            }))
+                            gameSpace[spaceId].startTimer()
+                            gameSpace[spaceId].continue()
+                        } else {
+                            await gameSpace[spaceId].end("player")
+                        }
+                        return true
+                    }
+                })
+                gameSpace[spaceId].on("end", async (winner: string = "bot") => {
+                    gameSpace[spaceId].stopTimer()
+                    const scoreList = gameSpace[spaceId].getAllScore()
+                    const scoreArray: { name: string, score: number }[] = []
+                    for (const i in scoreList)
+                        if (scoreList.hasOwnProperty(i))
+                            scoreArray.push({name: scoreList[i].name, score: scoreList[i].score})
+                    scoreArray.sort((a, b) => b.score - a.score)
+                    let scoreResult = scoreArray.length > 0 ? "" : "没有人得分"
+                    scoreArray.forEach((s, i, a) => {
+                        if (i === 0) scoreResult += Emoji.get("first_place_medal")
+                        else if (i === 1) scoreResult += Emoji.get("second_place_medal")
+                        else if (i === 2) scoreResult += Emoji.get("third_place_medal")
+                        scoreResult += `${s.name}：${s.score}分`
+                        if (i + 1 < a.length) scoreResult += "<br/>"
+                    })
+                    if (winner === "bot") {
+                        await message.say(template.use("idiom.game.botWin", {
+                            score: scoreResult
+                        }))
+                    } else if (winner === "player") {
+                        await message.say(template.use("idiom.game.botWin", {
+                            score: scoreResult
+                        }))
+                    }
+                    delete gameSpace[spaceId]
+                })
+                await gameSpace[spaceId].start()
+                return ""
+            } else {
+                return template.use("idiom.game.playing")
+            }
+        } else if (action === "answer") {
+            const result = await gameSpace[spaceId].answer({
+                content,
+                userId: message.talker().id,
+                userName: message.talker().name()
+            })
+            if (result) return ""
+        }
+    })
+export default idiomInterceptor
