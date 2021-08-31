@@ -44,7 +44,7 @@ export class MessageProcessor {
                 let checkResult: boolean = true
                 let checkerArgs: Record<string, any> = {}
                 for (const checker of i.$check) {
-                    const result = await checker(message)
+                    const result = await checker(message, checkerArgs)
                     if (!result) {
                         checkResult = false
                         break
