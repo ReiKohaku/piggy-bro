@@ -5,7 +5,7 @@ export type MessageSayType = string | number | Contact | FileBox | UrlLink | Min
 export namespace Interceptor {
     export type Checker = (message: Message, checkerArgs: Record<string, any>) => void | boolean | Record<string, any> | Promise<void | boolean | Record<string, any>>
     export type Handler = (message: Message, checkerArgs: Record<string, any>) => void | MessageSayType | Promise<void | MessageSayType>
-    export type Usage = string | ((message: Message) => string | Promise<string>)
+    export type Usage = string | ((message?: Message) => string | Promise<string>)
 }
 
 export default class Interceptor {
