@@ -79,7 +79,7 @@ template.add("idiom.game.botWin", [
     "没人能答上来了吗？那么二师兄赢了哦。<br/>本轮得分：<br/>{score}",
 ])
 
-const idiomInterceptor = new Interceptor()
+const idiomInterceptor = new Interceptor("成语接龙")
     .check(message => {
         const contact = message.talker()
         const room = message.room()
@@ -185,4 +185,5 @@ const idiomInterceptor = new Interceptor()
             if (result) return ""
         }
     })
+    .usage("和二师兄玩一局成语接龙！")
 export default idiomInterceptor

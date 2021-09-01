@@ -9,12 +9,24 @@ export namespace Interceptor {
 }
 
 export default class Interceptor {
+    #name: string
+    #alias: string[] = []
     #check: Interceptor.Checker[] = []
     #handler: Interceptor.Handler[] = []
     #usage: Interceptor.Usage | undefined
 
-    constructor() {
+    constructor(name: string) {
+        if (name.match(/\s/)) throw new Error(`Cannot create interceptor: name cannot includes space: ${name}`)
+        this.#name = name
         return this
+    }
+
+    get $name() {
+        return this.#name
+    }
+
+    get $alias() {
+        return this.#alias
     }
 
     get $check() {
@@ -27,6 +39,11 @@ export default class Interceptor {
 
     get $usage() {
         return this.#usage
+    }
+
+    public alias(alias: string) {
+        if (!this.#alias.includes(alias)) this.#alias.push(alias);
+        return this
     }
 
     public check(checker: Interceptor.Checker, append?: boolean) {

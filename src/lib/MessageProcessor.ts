@@ -18,7 +18,8 @@ export class MessageProcessor {
     }
 
     public interceptor(interceptor: Interceptor): void {
-        if (!this.interceptors.includes(interceptor)) this.interceptors.push(interceptor)
+        if (this.interceptors.map(i => i.$name).includes(interceptor.$name)) throw new Error(`Cannot insert interceptor: interceptor ${interceptor.$name} already exists`)
+        this.interceptors.push(interceptor)
     }
 
     /**
@@ -77,5 +78,20 @@ export class MessageProcessor {
 
     public on<K extends EventName>(event: K, listener: EventMap[K]) {
         this.events[event] = listener
+    }
+
+    public async usages(message?: Message): Promise<string[]> {
+        const results: string[] = []
+        for (const i of this.interceptors) {
+            if (i.$usage) results.push(`${i.$name}：${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`)
+        }
+        return results;
+    }
+
+    public async usage(name: string, message?: Message): Promise<string | void> {
+        for (const i of this.interceptors) {
+            if (i.$name === name || i.$alias.includes(name)) return `${i.$name}<br/>${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`
+        }
+        return void 0
     }
 }

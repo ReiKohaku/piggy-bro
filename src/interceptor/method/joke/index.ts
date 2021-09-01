@@ -15,7 +15,10 @@ template.add("joke.failed", "哎呀，二师兄没找到合适的笑话。等会
 import JuheAPIJoke from "./juheapi"
 import Interceptor from "../../Interceptor";
 
-const jokeInterceptor = new Interceptor()
+const jokeInterceptor = new Interceptor("讲笑话")
+    .alias("笑话")
+    .alias("讲段子")
+    .alias("段子")
     .check(message => /^(二师兄.*)讲个?(笑话|段子)/.test(message.text()))
     .handler(async () => {
         const result: string = await JuheAPIJoke()

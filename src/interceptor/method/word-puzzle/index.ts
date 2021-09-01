@@ -28,7 +28,8 @@ template.add("word-puzzle.game.lose", [
     "没有人回答出来吗？那么二师兄公布答案了。<br/>谜底是：{answer}<br/>{reason}"
 ])
 
-const wordPuzzleInterceptor = new Interceptor()
+const wordPuzzleInterceptor = new Interceptor("猜字谜")
+    .alias("字谜")
     .check(message => {
         const contact = message.talker()
         const room = message.room()
