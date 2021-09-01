@@ -8,6 +8,7 @@ export namespace Interceptor {
     export type Usage = string | ((message?: Message) => string | Promise<string>)
 }
 
+const usedNameList: string[] = []
 const usedAliasList: { interceptor: string, alias: string }[] = []
 
 export default class Interceptor {
@@ -19,7 +20,9 @@ export default class Interceptor {
 
     constructor(name: string) {
         if (name.match(/\s/)) throw new Error(`Cannot create interceptor: name cannot includes space: ${name}`)
+        if (usedNameList.includes(name)) throw new Error(`Cannot create interceptor: name already exists: ${name}`)
         this.#name = name
+        usedNameList.push(name)
         return this
     }
 
@@ -44,6 +47,7 @@ export default class Interceptor {
     }
 
     public alias(alias: string) {
+        if (usedNameList.includes(alias)) throw new Error(`Cannot add alias: there has an interceptor named ${alias}`)
         for (const usedAlias of usedAliasList) {
             if (usedAlias.alias === alias) throw new Error(`Cannot add alias: alias ${alias} already used by interceptor ${usedAlias.interceptor}`)
         }
