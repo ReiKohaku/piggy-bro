@@ -8,6 +8,8 @@ export namespace Interceptor {
     export type Usage = string | ((message?: Message) => string | Promise<string>)
 }
 
+const usedAliasList: { interceptor: string, alias: string }[] = []
+
 export default class Interceptor {
     #name: string
     #alias: string[] = []
@@ -42,7 +44,13 @@ export default class Interceptor {
     }
 
     public alias(alias: string) {
-        if (!this.#alias.includes(alias)) this.#alias.push(alias);
+        for (const usedAlias of usedAliasList) {
+            if (usedAlias.alias === alias) throw new Error(`Cannot add alias: alias ${alias} already used by interceptor ${usedAlias.interceptor}`)
+        }
+        if (!this.#alias.includes(alias)) {
+            this.#alias.push(alias);
+            usedAliasList.push({ interceptor: this.#name, alias })
+        }
         return this
     }
 
