@@ -6,6 +6,9 @@ import qrcodeTerminal from "qrcode-terminal";
 import path from "path"
 import {mkdirSync} from "./lib/Util";
 export const __data_dir = path.join(__dirname, "../data")
+export const __interceptor_dir = path.join(__dirname, "./interceptor")
+export const __build_dir = __dirname
+export const __src_dir = path.join(__dirname, "../src")
 mkdirSync(__data_dir)
 
 import SqliteTemplate from "./lib/SqliteTemplate";
@@ -23,6 +26,11 @@ export {template}
 // 给公共模板设置默认值
 import "./template"
 
+// 启动http服务器
+import server from "./server"
+server()
+
+// 引入拦截器
 import {mp} from "./interceptor";
 
 const wechaty = Wechaty.instance({
@@ -71,3 +79,7 @@ wechaty.on("error", async (error) => {
 wechaty.start().then(() => {
     console.log(template.use("on.start"))
 })
+export {wechaty}
+
+const startAt = new Date()
+export {startAt}
