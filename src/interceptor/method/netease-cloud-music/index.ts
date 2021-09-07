@@ -198,8 +198,9 @@ namespace NeteaseCloudMusicTypes {
     }
 }
 
-const neteaseMusicInterceptor = new Interceptor("搜音乐")
-    .alias("网易云音乐")
+const neteaseMusicInterceptor = new Interceptor("netease-cloud-music")
+    .title("网易云音乐")
+    .alias("搜音乐")
     .check(message => {
         const searchArgs = getSearchArgs(message.text())
         if (/^二师兄/.test(message.text()) && searchArgs) {

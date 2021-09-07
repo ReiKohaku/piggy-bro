@@ -1,7 +1,8 @@
 import Interceptor from "../../Interceptor";
 import { mp } from "../../index";
 
-const helpInterceptor = new Interceptor("使用帮助")
+const helpInterceptor = new Interceptor("help")
+    .title("使用帮助")
     .alias("help")
     .check(message => {
         const text = message.text().replace(/^二师兄[，。,.\s]*/, "")

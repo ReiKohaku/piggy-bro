@@ -8,11 +8,9 @@ export namespace Interceptor {
     export type Usage = string | ((message?: Message) => string | Promise<string>)
 }
 
-const usedNameList: string[] = []
-const usedAliasList: { interceptor: string, alias: string }[] = []
-
 export default class Interceptor {
     #name: string
+    #title: string
     #alias: string[] = []
     #check: Interceptor.Checker[] = []
     #handler: Interceptor.Handler[] = []
@@ -20,14 +18,16 @@ export default class Interceptor {
 
     constructor(name: string) {
         if (name.match(/\s/)) throw new Error(`Cannot create interceptor: name cannot includes space: ${name}`)
-        if (usedNameList.includes(name)) throw new Error(`Cannot create interceptor: name already exists: ${name}`)
         this.#name = name
-        usedNameList.push(name)
         return this
     }
 
     get $name() {
         return this.#name
+    }
+
+    get $title() {
+        return this.#title || this.#name
     }
 
     get $alias() {
@@ -46,15 +46,13 @@ export default class Interceptor {
         return this.#usage
     }
 
+    public title(title: string) {
+        if (!this.#alias.includes(title) && this.#name !== title) this.#title = title
+        return this
+    }
+
     public alias(alias: string) {
-        if (usedNameList.includes(alias)) throw new Error(`Cannot add alias: there has an interceptor named ${alias}`)
-        for (const usedAlias of usedAliasList) {
-            if (usedAlias.alias === alias) throw new Error(`Cannot add alias: alias ${alias} already used by interceptor ${usedAlias.interceptor}`)
-        }
-        if (!this.#alias.includes(alias)) {
-            this.#alias.push(alias);
-            usedAliasList.push({ interceptor: this.#name, alias })
-        }
+        if (!this.#alias.includes(alias) && this.#name !== alias && this.#title !== alias) this.#alias.push(alias);
         return this
     }
 

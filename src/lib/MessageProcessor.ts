@@ -18,7 +18,18 @@ export class MessageProcessor {
     }
 
     public interceptor(interceptor: Interceptor): void {
-        if (this.interceptors.map(i => i.$name).includes(interceptor.$name)) throw new Error(`Cannot insert interceptor: interceptor ${interceptor.$name} already exists`)
+        const usedName = this.interceptors.map(i => i.$name)
+        const usedTitle = this.interceptors.map(i => i.$title)
+        const usedAlias = []
+        this.interceptors.map(i => i.$alias).forEach(a => usedAlias.push(...a))
+        const verifyExists = (str: string) => {
+            if (usedName.includes(str)) throw new Error(`Cannot insert interceptor: ${str} already exists as an interceptor name`)
+            if (usedTitle.includes(str)) throw new Error(`Cannot insert interceptor: ${str} already exists as an interceptor title`)
+            if (usedAlias.includes(str)) throw new Error(`Cannot insert interceptor: ${str} already exists as an interceptor alias`)
+        }
+        verifyExists(interceptor.$name)
+        verifyExists(interceptor.$title)
+        interceptor.$alias.forEach(a => verifyExists(a))
         this.interceptors.push(interceptor)
     }
 
@@ -83,19 +94,21 @@ export class MessageProcessor {
     public async usages(message?: Message): Promise<string[]> {
         const results: string[] = []
         for (const i of this.interceptors) {
-            if (i.$usage) results.push(`${i.$name}：${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`)
+            if (i.$usage) results.push(`${i.$title}：${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`)
         }
         return results;
     }
 
     public async usage(name: string, message?: Message): Promise<string | void> {
         for (const i of this.interceptors) {
-            if (i.$name === name || i.$alias.includes(name)) return `${i.$name}<br/>${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`
+            if (i.$name === name || i.$title === name || i.$alias.includes(name)) return `${i.$name}<br/>${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`
         }
         return void 0
     }
 
-    public list(): string[] {
-        return this.interceptors.map(i => i.$name)
+    public list(): { name: string, title: string, alias: string[] }[] {
+        return this.interceptors.map(i => {
+            return { name: i.$name, title: i.$title, alias: i.$alias }
+        })
     }
 }

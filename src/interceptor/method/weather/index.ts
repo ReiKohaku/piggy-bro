@@ -13,7 +13,8 @@ import caiyunWeather, {dressingDict, skyconDict, toAqiDesc, ultravioletDict} fro
 import {place} from "../../../lib/APIs/CaiyunAPI";
 import Interceptor from "../../Interceptor";
 
-const weatherInterceptor = new Interceptor("查天气")
+const weatherInterceptor = new Interceptor("weather")
+    .title("查天气")
     .alias("天气")
     .check(message => {
         if (/^二师兄/.test(message.text()) && (/查(.*)的?天气/.test(message.text()) || /(.*)的?天气(如何|怎么?样)/.test(message.text()))) {

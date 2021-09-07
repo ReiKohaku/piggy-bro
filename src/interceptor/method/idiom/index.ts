@@ -79,7 +79,8 @@ template.add("idiom.game.botWin", [
     "没人能答上来了吗？那么二师兄赢了哦。<br/>本轮得分：<br/>{score}",
 ])
 
-const idiomInterceptor = new Interceptor("成语接龙")
+const idiomInterceptor = new Interceptor("idiom")
+    .title("成语接龙")
     .check(message => {
         const contact = message.talker()
         const room = message.room()
