@@ -94,4 +94,8 @@ export class MessageProcessor {
         }
         return void 0
     }
+
+    public list(): string[] {
+        return this.interceptors.map(i => i.$name)
+    }
 }

@@ -3,6 +3,7 @@ import {error, success} from "../../ResponseGenerator";
 import fs from "fs";
 import path from "path";
 import {__build_dir, __interceptor_dir, __src_dir} from "../../../bot";
+import {mp} from "../../../interceptor";
 
 const parse = (str: string) => {
     try {
@@ -13,7 +14,7 @@ const parse = (str: string) => {
 }
 
 const handler: RouteHandler = (req, res, data) => {
-    if (!data) return error("ERR_PARAM_INVALID")
+    if (!data) return success(mp.list());
     const params = parse(typeof data === "string" ? data : data.toString("utf-8"))
     if (!params) return error("ERR_PARAM_INVALID")
 
