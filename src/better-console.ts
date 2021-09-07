@@ -4,8 +4,8 @@ const error = console.error
 const getPrefix = (...data: any) => {
     let prefix = "Piggy Bro"
     let output = data
-    if (typeof data[0] === "string" && /\[(.*)]/.test(data[0])) {
-        prefix = data[0].match(/\[(.*)]/)[1]
+    if (typeof data[0] === "string" && /^\[(.*)]/.test(data[0])) {
+        prefix = data[0].match(/^\[(.*)]/)[1]
         output = data.slice(1, data.length)
     }
     return { output, prefix }
