@@ -3,6 +3,7 @@ import routes from "./routes";
 
 export default class Router {
     public static async get(req: IncomingMessage, res: ServerResponse) {
+        res.setHeader("Content-Type", "application/json; charset=utf-8")
         const pathname = req.url;
         for (const route of routes) {
             if (route.path === pathname) {
@@ -19,6 +20,7 @@ export default class Router {
     }
 
     public static async post(req: IncomingMessage, res: ServerResponse) {
+        res.setHeader("Content-Type", "application/json; charset=utf-8")
         const pathname = req.url;
         for (const route of routes) {
             if (route.method && !route.method.split(",").map(m => m.toUpperCase()).includes("POST")) {
