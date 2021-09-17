@@ -111,4 +111,19 @@ export class MessageProcessor {
             return { name: i.$name, title: i.$title, alias: i.$alias }
         })
     }
+
+    public async attribute(name: string, ...args: any): Promise<Record<string, { desc?: string, data: string | number | boolean | any[] | Record<any, any> }> | void> {
+        for (const i of this.interceptors) {
+            if (i.$name === name || i.$title === name || i.$alias.includes(name)) return await i.$attributes(...args)
+        }
+        return void 0
+    }
+
+    public async attributes(...args: any): Promise<Record<string, Record<string, { desc?: string, data: string | number | boolean | any[] | Record<any, any> }>>> {
+        const result = {}
+        for (const i in this.interceptors) {
+            result[this.interceptors[i].$name] = await this.interceptors[i].$attributes(...args)
+        }
+        return result
+    }
 }

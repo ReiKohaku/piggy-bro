@@ -31,6 +31,7 @@ template.add("word-puzzle.game.lose", [
 const wordPuzzleInterceptor = new Interceptor("word-puzzle")
     .title("猜字谜")
     .alias("字谜")
+    .attribute("limit", ({ id }) => callLimiter.check(`room_${id}`, "word-puzzle"), "今日游玩次数")
     .check(message => {
         const contact = message.talker()
         const room = message.room()
@@ -65,6 +66,7 @@ const wordPuzzleInterceptor = new Interceptor("word-puzzle")
                 gameSpace[spaceId].on("start", async () => {
                     try {
                         const puzzle = await getPuzzle()
+                        await callLimiter.record(spaceId, "word-puzzle")
                         gameSpace[spaceId].data = puzzle
                         await message.say(template.use("word-puzzle.game.start", {
                             puzzle: puzzle.content
