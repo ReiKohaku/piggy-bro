@@ -18,8 +18,7 @@ if (!fs.existsSync(path.join(__data_dir, "./idioms/idioms_converted.json"))) {
             return {
                 name: s,
                 pinyin: pinyin(s, {
-                    style: pinyin.STYLE_NORMAL,
-                    heteronym: true
+                    style: pinyin.STYLE_NORMAL
                 })
             }
         })
@@ -69,6 +68,11 @@ template.add("idiom.game.start", "成语接龙游戏开始！<br/>请在30秒内
 template.add("idiom.game.next", [
     "真棒！<br/>那二师兄再接一个：<br/>{idiom}",
     "不错不错~<br/>那二师兄再接一个：<br/>{idiom}",
+    "好厉害！<br/>那二师兄再接一个：<br/>{idiom}"
+])
+template.add("idiom.game.wrong", [
+    "“{idiom}”好像不是成语哦。",
+    "“{idiom}”似乎不是一个成语呢。"
 ])
 template.add("idiom.game.playerWin", [
     "你真厉害！二师兄也接不上下一个了。<br/>本轮得分：<br/>{score}",
@@ -118,6 +122,15 @@ const idiomInterceptor = new Interceptor("idiom")
                 })
                 gameSpace[spaceId].on("answer", async (answer) => {
                     const lastIdiom = gameSpace[spaceId].lastIdiom()
+                    // 应要求加上一个错误提示，这里是猜测对方话的内容是不是在答题……
+                    const maybeAnswer = (function () {
+                        const contentPinyin = pinyin(answer.content, { style: pinyin.STYLE_NORMAL })
+                        for (const p1 of contentPinyin[0])
+                            for (const p2 of lastIdiom.pinyin[lastIdiom.pinyin.length - 1])
+                                if (p1 === p2) return true
+                        return false
+                    })()
+
                     const idiom = findIdiom(answer.content)
                     if (idiom && isEndToEnd(lastIdiom, idiom)) {
                         gameSpace[spaceId].pause()
@@ -143,6 +156,10 @@ const idiomInterceptor = new Interceptor("idiom")
                             await gameSpace[spaceId].end("player")
                         }
                         return true
+                    } else if (maybeAnswer) {
+                        await message.say(template.use("idiom.game.wrong", {
+                            idiom: answer.content
+                        }))
                     }
                 })
                 gameSpace[spaceId].on("end", async (winner: string = "bot") => {
@@ -153,14 +170,11 @@ const idiomInterceptor = new Interceptor("idiom")
                         if (scoreList.hasOwnProperty(i))
                             scoreArray.push({name: scoreList[i].name, score: scoreList[i].score})
                     scoreArray.sort((a, b) => b.score - a.score)
-                    let scoreResult = scoreArray.length > 0 ? "" : "没有人得分"
-                    scoreArray.forEach((s, i, a) => {
-                        if (i === 0) scoreResult += Emoji.get("first_place_medal")
-                        else if (i === 1) scoreResult += Emoji.get("second_place_medal")
-                        else if (i === 2) scoreResult += Emoji.get("third_place_medal")
-                        scoreResult += `${s.name}：${s.score}分`
-                        if (i + 1 < a.length) scoreResult += "<br/>"
-                    })
+                    const medalEmoji = [Emoji.get("first_place_medal"), Emoji.get("second_place_medal"), Emoji.get("third_place_medal")]
+                    const scoreResult = scoreArray.length ?
+                        scoreArray.map((v, index) => `${index <= 2 ? medalEmoji[index] : ""}${v.name}：${v.score}分`)
+                            .join("<br />") :
+                        "没有人得分"
                     if (winner === "bot") {
                         await message.say(template.use("idiom.game.botWin", {
                             score: scoreResult
