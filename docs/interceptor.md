@@ -149,3 +149,48 @@ testInterceptor.alias("test");
 ```
 
 使用`.$alias`可以获得此拦截器的别名列表。
+
+### 属性
+
+如果您使用后花园，您可以用**属性**来为你的用户展示一些变量，例如今天的游戏次数还剩几次。
+
+调用`attribute()`方法可以为拦截器创建一个属性。
+
+此方法的参数如下：
+
+| 参数名    | 类型                               | 备注     |
+| --------- | ---------------------------------- | -------- |
+| name      | string                             | 属性名   |
+| attribute | *任意基础类型或返回基础类型的函数* | 属性值   |
+| desc?     | string                             | 属性描述 |
+
+若`attribute`参数为一个函数，则该函数的参数如下：
+
+| 参数名 | 类型 | 备注                 |
+| ------ | ---- | -------------------- |
+| args   | any  | 前端访问时提供的参数 |
+
+其中，如果您使用的是本项目自带的**二师兄后花园**前端，那么参数将会是一个包含下列属性的对象：
+
+| 属性名 | 类型   | 备注                                        |
+| ------ | ------ | ------------------------------------------- |
+| id     | string | 后花园所属群的id（由message.room().id获取） |
+
+使用此方法创建的属性，将会在API服务器的`/api/status`接口中返回。
+
+```typescript
+import Interceptor from "src/interceptor/interceptor";
+import { callLimiter } from "./bot";
+
+const testInterceptor = new Interceptor("test");
+// 展示请求此属性时的时间
+testInterceptor.attribute("now", () => new Date(), "当前时间");
+// 每次调用时计数器+1；提供一个已调用次数的属性供用户查询
+testInterceptor.attribute("used", ({ id }) => callLimiter.check(`room_${id}`, "test"), "已调用次数")
+    .check(message => message.text().toLowerCase() === "test")
+    .handler(async (message) => {
+        if (message.room()) await callLimiter.record(`room_${message.room().id}`, "test");
+    });
+```
+
+使用`.$attributes()`方法可以获取当前拦截器已注册的所有属性值。
