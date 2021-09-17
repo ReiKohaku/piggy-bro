@@ -16,6 +16,7 @@ mp.on("error", (message, error) => {
     }
 })
 
+import garden from "./method/garden"
 import help from "./method/help"
 import hello from "./method/hello"
 import idiom from "./method/idiom"
@@ -25,6 +26,7 @@ import weather from "./method/weather"
 import neteaseCloudMusic from "./method/netease-cloud-music"
 import wordPuzzle from "./method/word-puzzle";
 
+mp.interceptor(garden)
 mp.interceptor(help)
 mp.interceptor(hello)
 mp.interceptor(idiom)
