@@ -10,6 +10,5 @@ const HelloInterceptor = new Interceptor("Hello")
     .handler(() => {
         return template.use("helloWorld")
     })
-    .usage("Hello World：Hello World 模块")
     .attribute("date", () => new Date(), "当前时间")
 export default HelloInterceptor

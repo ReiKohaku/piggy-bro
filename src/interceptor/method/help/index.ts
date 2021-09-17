@@ -20,5 +20,5 @@ const helpInterceptor = new Interceptor("help")
             return usages.join("<br/>")
         }
     })
-    .usage("使用帮助：获取二师兄的使用帮助")
+    .usage("获取二师兄的使用帮助")
 export default helpInterceptor

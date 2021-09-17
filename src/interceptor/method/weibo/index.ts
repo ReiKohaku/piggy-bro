@@ -30,6 +30,7 @@ const weiboInterceptor = new Interceptor("weibo")
     .alias("看热搜")
     .alias("查热搜")
     .alias("热搜")
+    .usage("查看最新最热的微博爆款热搜")
     .check(message => {
         if (/^二师兄/.test(message.text()) && /([查看有].*?热搜|.*?热搜.*?[有是].*?)/.test(message.text())) return true
     }).handler(async () => {

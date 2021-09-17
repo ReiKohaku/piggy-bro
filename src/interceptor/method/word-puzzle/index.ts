@@ -32,6 +32,7 @@ const wordPuzzleInterceptor = new Interceptor("word-puzzle")
     .title("猜字谜")
     .alias("字谜")
     .attribute("limit", ({ id }) => callLimiter.check(`room_${id}`, "word-puzzle"), "今日游玩次数")
+    .usage("来和二师兄猜字谜吧！")
     .check(message => {
         const contact = message.talker()
         const room = message.room()

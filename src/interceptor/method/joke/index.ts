@@ -20,6 +20,7 @@ const jokeInterceptor = new Interceptor("joke")
     .alias("笑话")
     .alias("讲段子")
     .alias("段子")
+    .usage("讲个笑话吧")
     .check(message => /^(二师兄.*)讲个?(笑话|段子)/.test(message.text()))
     .handler(async () => {
         const result: string = await JuheAPIJoke()

@@ -7,6 +7,7 @@ interface GardenConfig {
 
 const gardenInterceptor = new Interceptor("garden")
     .title("后花园")
+    .usage("查看详细的使用帮助和运行状态")
     .check(message => {
         const room = message.room();
         if (!room) return;

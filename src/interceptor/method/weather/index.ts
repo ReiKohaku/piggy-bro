@@ -16,6 +16,7 @@ import Interceptor from "../../Interceptor";
 const weatherInterceptor = new Interceptor("weather")
     .title("查天气")
     .alias("天气")
+    .usage("二师兄，xx天气如何？")
     .check(message => {
         if (/^二师兄/.test(message.text()) && (/查(.*)的?天气/.test(message.text()) || /(.*)的?天气(如何|怎么?样)/.test(message.text()))) {
             const text = message.text().replace(/^二师兄[，。,.\s]*/, "")
