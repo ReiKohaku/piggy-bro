@@ -13,30 +13,28 @@ export interface HotKey {
     isNew?: boolean         // 新
 }
 
-import {template} from "../../../bot";
-
-template.add("weibo.success", [
-    "微博热搜有哪些：<br/>{hotSearch}",
-    "现在的微博热搜：<br/>{hotSearch}",
-])
-
 // 默认使用WAPI查询。如果需要自定义查询实现，请参照WAPI实现或TianAPI实现编写。
 import WAPIHotSearch from "./wapi"
 import Interceptor from "../../Interceptor";
 // import TianAPIWeiboHot from "./tianapi"
 
-const weiboInterceptor = new Interceptor("weibo")
+const weiboInterceptor = new Interceptor("weibo", context => {
+    context.template.add("weibo.success", [
+        "微博热搜有哪些：<br/>{hotSearch}",
+        "现在的微博热搜：<br/>{hotSearch}",
+    ])
+})
     .title("微博热搜")
     .alias("看热搜")
     .alias("查热搜")
     .alias("热搜")
     .usage("查看最新最热的微博爆款热搜")
-    .check(message => {
+    .check((context, message) => {
         if (/^二师兄/.test(message.text()) && /[查看有]?(微博)?热搜/.test(message.text())) return true
-    }).handler(async () => {
+    }).handler(async (context) => {
         const hotSearchList = await WAPIHotSearch()
         // const hotSearchList = await TianAPIWeiboHot()
-        return template.use("weibo.success", {
+        return context.template.use("weibo.success", {
             hotSearch: hotSearchList
                 .map(h => `${h.key}${h.isNew ? Emoji.get("new") : ""}${h.isHot ? Emoji.get("fire") : ""}${h.isExplosive ? Emoji.get("boom") : ""}${h.isBoiled ? Emoji.get("hotsprings") : ""}`)
                 .join("<br/>")

@@ -12,3 +12,4 @@ template.add("error.unknown", "二师兄这里出了点问题，没能帮到你�
 template.add("error.api.key.missing", "二师兄没有查询数据的令牌，现在没法给您看这个。")
 template.add("error.api.call.limit", "今天使用这个功能的次数达到上限了，明天再来吧^_^")
 template.add("error.api.call.no_permission", "哎呀，对方不让二师兄查这个数据。")
+template.add("on.load.finish", "已加载 {count} 个功能模块。")

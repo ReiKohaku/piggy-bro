@@ -1,6 +1,5 @@
 import NeteaseCloudMusic, {SearchType} from "NeteaseCloudMusicApi"
 import {UrlLink} from "wechaty";
-import {template} from "../../../bot";
 import Interceptor from "../../Interceptor";
 
 // 这个方法用于解析搜索参数
@@ -31,9 +30,6 @@ function getSearchArgs(text: string): null | { type: SearchType, keywords: strin
 
     return null
 }
-
-template.add("netease-cloud-music.search.failed", "很抱歉，搜索 {search} 时失败了，请你等会再试试吧。")
-template.add("netease-cloud-music.search.success", "二师兄给你找到了一首歌~<br/>{title} - {artists}<br/>{url}")
 
 namespace NeteaseCloudMusicTypes {
     export interface Artist {
@@ -198,17 +194,20 @@ namespace NeteaseCloudMusicTypes {
     }
 }
 
-const neteaseMusicInterceptor = new Interceptor("netease-cloud-music")
+const neteaseMusicInterceptor = new Interceptor("netease-cloud-music", context => {
+    context.template.add("netease-cloud-music.search.failed", "很抱歉，搜索 {search} 时失败了，请你等会再试试吧。")
+    context.template.add("netease-cloud-music.search.success", "二师兄给你找到了一首歌~<br/>{title} - {artists}<br/>{url}")
+})
     .title("网易云音乐")
     .alias("搜音乐")
     .usage("二师兄，我想听……")
-    .check(message => {
+    .check((context, message) => {
         const searchArgs = getSearchArgs(message.text())
         if (/^二师兄/.test(message.text()) && searchArgs) {
             return {searchArgs}
         }
     })
-    .handler(async (message, checkerArgs: { searchArgs: {type: SearchType, keywords: string} }) => {
+    .handler(async (context, message, checkerArgs: { searchArgs: {type: SearchType, keywords: string} }) => {
         const {searchArgs} = checkerArgs
         // 调用搜索API
         const searchResult: NeteaseCloudMusicTypes.SearchResponse = (await NeteaseCloudMusic.search({
@@ -243,12 +242,12 @@ const neteaseMusicInterceptor = new Interceptor("netease-cloud-music")
                     // 2021-08-31：后来看了看文档，web协议不支持，那没事了
                     console.warn("Send UrlLink failed, fallback to text message.")
                     console.warn(e)
-                    await message.say(template.use("netease-cloud-music.search.success", {title, artists, url}))
+                    await message.say(context.template.use("netease-cloud-music.search.success", {title, artists, url}))
                 }
                 return ""
             }
         }
-        return template.use("netease-cloud-music.search.failed", {
+        return context.template.use("netease-cloud-music.search.failed", {
             search: searchArgs.keywords
         })
     })

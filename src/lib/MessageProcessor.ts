@@ -1,6 +1,7 @@
 import {Contact, FileBox, Message, MiniProgram, UrlLink} from "wechaty";
 import Interceptor, {MessageSayType} from "../interceptor/Interceptor";
 import {template} from "../bot";
+import Context from "./Context";
 
 interface EventMap {
     'error'(message: Message, error: any): any
@@ -9,6 +10,7 @@ interface EventMap {
 type EventName = keyof EventMap
 
 export class MessageProcessor {
+    private readonly context: Context
     private interceptors: Array<Interceptor> = []
     private events: EventMap = {
         'error'(message, error) {
@@ -17,7 +19,11 @@ export class MessageProcessor {
         }
     }
 
-    public interceptor(interceptor: Interceptor): void {
+    constructor(context: Context) {
+        this.context = context;
+    }
+
+    public async interceptor(interceptor: Interceptor): Promise<void> {
         const usedName = this.interceptors.map(i => i.$name)
         const usedTitle = this.interceptors.map(i => i.$title)
         const usedAlias = []
@@ -29,7 +35,8 @@ export class MessageProcessor {
         }
         verifyExists(interceptor.$name)
         verifyExists(interceptor.$title)
-        interceptor.$alias.forEach(a => verifyExists(a))
+        if (interceptor.$alias && interceptor.$alias.length) interceptor.$alias.forEach(a => verifyExists(a))
+        if (interceptor.$regist) await interceptor.$regist(this.context)
         this.interceptors.push(interceptor)
     }
 
@@ -56,7 +63,7 @@ export class MessageProcessor {
                 let checkResult: boolean = true
                 let checkerArgs: Record<string, any> = {}
                 for (const checker of i.$check) {
-                    const result = await checker(message, checkerArgs)
+                    const result = await checker(this.context, message, checkerArgs)
                     if (!result) {
                         checkResult = false
                         break
@@ -69,7 +76,7 @@ export class MessageProcessor {
 
                 const sentMessages: Array<Message | undefined> = []
                 for (const handler of i.$handler) {
-                    const result = await handler(message, checkerArgs)
+                    const result = await handler(this.context, message, checkerArgs)
                     if (typeof result === "string" && !result.length) continue
                     if (result) {
                         const sentMessage = await send(result)
@@ -94,14 +101,14 @@ export class MessageProcessor {
     public async usages(message?: Message): Promise<string[]> {
         const results: string[] = []
         for (const i of this.interceptors) {
-            if (i.$usage) results.push(`${i.$title}：${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`)
+            if (i.$usage) results.push(`${i.$title}：${typeof i.$usage === "string" ? i.$usage : await i.$usage(this.context, message)}`)
         }
         return results;
     }
 
     public async usage(name: string, message?: Message): Promise<string | void> {
         for (const i of this.interceptors) {
-            if (i.$name === name || i.$title === name || i.$alias.includes(name)) return `${i.$name}<br/>${typeof i.$usage === "string" ? i.$usage : await i.$usage(message)}`
+            if (i.$name === name || i.$title === name || i.$alias.includes(name)) return `${i.$name}<br/>${typeof i.$usage === "string" ? i.$usage : await i.$usage(this.context, message)}`
         }
         return void 0
     }
@@ -114,7 +121,7 @@ export class MessageProcessor {
 
     public async attribute(name: string, ...args: any): Promise<Record<string, { desc?: string, data: string | number | boolean | any[] | Record<any, any> }> | void> {
         for (const i of this.interceptors) {
-            if (i.$name === name || i.$title === name || i.$alias.includes(name)) return await i.$attributes(...args)
+            if (i.$name === name || i.$title === name || i.$alias.includes(name)) return await i.$attributes(this.context, ...args)
         }
         return void 0
     }
@@ -122,7 +129,7 @@ export class MessageProcessor {
     public async attributes(...args: any): Promise<Record<string, Record<string, { desc?: string, data: string | number | boolean | any[] | Record<any, any> }>>> {
         const result = {}
         for (const i in this.interceptors) {
-            result[this.interceptors[i].$name] = await this.interceptors[i].$attributes(...args)
+            result[this.interceptors[i].$name] = await this.interceptors[i].$attributes(this.context, ...args)
         }
         return result
     }

@@ -2,16 +2,26 @@
   "name": "piggy-bro",
   "version": "1.0.0",
   "description": "An open-source wechaty based chatting bot",
-  "main": "index.js",
+  "main": "build/index.js",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "files": [
+    "README.md",
+    "package.json",
+    "tsconfig.json",
+    "build",
+    "docs"
+  ],
   "scripts": {
-    "start": "tsc && node build/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsc && node build/entry.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "tsc && npm publish"
   },
   "keywords": [
     "wechaty",
     "bot"
   ],
-  "author": "ReiKohaku",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.21.1",
@@ -30,5 +40,21 @@
     "@types/mime": "^2.0.3",
     "@types/pinyin": "^2.8.3",
     "@types/sqlite3": "^3.1.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReiKohaku/piggy-bro.git"
+  },
+  "author": {
+    "name": "ReiKohaku",
+    "email": "hbsjzjwj@gmail.com",
+    "url": "https://github.com/ReiKohaku"
+  },
+  "bugs": {
+    "url": "https://github.com/ReiKohaku/piggy-bro/issues"
+  },
+  "homepage": "https://github.com/ReiKohaku/piggy-bro#readme",
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -4,6 +4,24 @@
 
 通过编写拦截器，可以控制机器人对消息的应答。
 
+## 模块化编写
+
+非常推荐您单独编写拦截器，而不是直接在此项目的`src/interceptor/method`下编写。
+
+在2021年9月底最后的几次更新中，拦截器又一次获得了重大的“Breaking Changes”：引入了**上下文**（**Context**）概念，并修改了拦截器的引入方式，将功能与机器人**耦合度降为零**！
+
+这次更新让开发者不必fork此项目，就可以尽情编写自己的拦截器，并方便地添加他人编写的拦截器。
+
+如果您要开始编写您的拦截器，您只需要这样做：
+
+1. 新建一个文件夹作为您的拦截器项目文件夹；
+
+2. 使用`npm init`命令，创建一个npm包；
+
+3. 使用`npm install piggy-bro --save`，引入二师兄机器人开发套件；
+
+4. 开始您的编写！
+
 ## 引入与创建
 
 拦截器类位于源代码目录下的`interceptor/Interceptor.ts`文件内。
@@ -11,12 +29,16 @@
 引入时只需要引入该文件即可：
 
 ```typescript
-import Interceptor from "src/interceptor/interceptor.ts";
+import { Interceptor } from "piggy-bro";
 
-const testInterceptor = new Interceptor("test");
+const testInterceptor = new Interceptor("test", context => {
+    console.log("Interceptor test registed!");
+});
 ```
 
 创建类实例时，需要提供`拦截器名`。`拦截器名`不能包含空格；如果包含空格，程序将会抛出错误。
+
+如果在后面附加了`registHandler`参数，则消息处理器载入此拦截器时，会运行该回调函数。 该回调函数包含一个`Context`类型的参数。
 
 使用`.$name`可以获取此拦截器的`拦截器名`。
 
@@ -32,6 +54,7 @@ const testInterceptor = new Interceptor("test");
 
 | 参数名      | 类型                | 备注             |
 | ----------- | ------------------- | ---------------- |
+| context     | Context             | 机器人上下文     |
 | message     | Wechaty.Message     | 发送来的消息对象 |
 | checkerArgs | Record<string, any> | 检查器提供的参数 |
 
@@ -47,7 +70,7 @@ const testInterceptor = new Interceptor("test");
 以下是一个对任何消息都会返回`Hello Piggy Bro!`的拦截器：
 
 ```typescript
-import Interceptor from "src/interceptor/interceptor";
+import { Interceptor } from "piggy-bro";
 
 const testInterceptor = new Interceptor("test");
 testInterceptor.handler(() => "Hello Piggy Bro!");
@@ -69,6 +92,7 @@ testInterceptor.handler(() => "Hello Piggy Bro!");
 
 | 参数名      | 类型                | 备注                 |
 | ----------- | ------------------- | -------------------- |
+| context     | Context             | 机器人上下文         |
 | message     | Wechaty.Message     | 发送来的消息对象     |
 | checkerArgs | Record<string, any> | 之前检查器提供的参数 |
 
@@ -87,19 +111,19 @@ testInterceptor.handler(() => "Hello Piggy Bro!");
 以下是一个示例，用户提供输入以后，调用对应的API进行搜索，如果能够搜索到结果，就向用户提供第一条搜索结果的内容。
 
 ```typescript
-import Interceptor from "src/interceptor/interceptor";
+import { Interceptor } from "piggy-bro";
 import searcher from "./api";
 
 const testInterceptor = new Interceptor("test");
-testInterceptor.check(message => {
+testInterceptor.check((context, message) => {
     if (message.text().length) return {
         content: message.text()
     }
-}).check(async (message, checkerArgs: { content: string }) => {
+}).check(async (context, message, checkerArgs: { content: string }) => {
     const { content } = checkerArgs
     const results: Array = await searcher(content)
     if (results && results.length) return { results }
-}).handler((message, checkerArgs: { content: string, results: Array }) => {
+}).handler((context, message, checkerArgs: { content: string, results: Array }) => {
     return results[0].content
 });
 ```
@@ -113,15 +137,15 @@ testInterceptor.check(message => {
 您既可以提供一个`string`，也可以提供一个返回`string`函数（同步或异步均可）作为参数。
 
 ```typescript
-import Interceptor from "src/interceptor/interceptor";
+import { Interceptor } from "piggy-bro";
 
 const testInterceptor = new Interceptor("test");
 testInterceptor.usage("我是一个测试拦截器");
 // ...or a function
-testInterceptor.usage(() => "我是一个测试拦截器");
+testInterceptor.usage(context => "我是一个测试拦截器");
 // ...a promise is also ok
 import usageAPI from "./api";
-testInterceptor.usage(async (message) => {
+testInterceptor.usage(async (context, message) => {
     const result: { data: string } = await usageAPI(message.text())
     return result.data;
 });
@@ -140,7 +164,7 @@ testInterceptor.usage(async (message) => {
 但请注意，创建别名时不能使用其它拦截器的名字或已经定义过的别名，否则程序将抛出错误。
 
 ```typescript
-import Interceptor from "src/interceptor/interceptor";
+import { Interceptor } from "piggy-bro";
 
 const testInterceptor = new Interceptor("test");
 testInterceptor.alias("测试").alias("测试功能");
@@ -166,9 +190,10 @@ testInterceptor.alias("test");
 
 若`attribute`参数为一个函数，则该函数的参数如下：
 
-| 参数名 | 类型 | 备注                 |
-| ------ | ---- | -------------------- |
-| args   | any  | 前端访问时提供的参数 |
+| 参数名  | 类型    | 备注                 |
+| ------- | ------- | -------------------- |
+| context | Context | 机器人上下文         |
+| args    | any     | 前端访问时提供的参数 |
 
 其中，如果您使用的是本项目自带的**二师兄后花园**前端，那么参数将会是一个包含下列属性的对象：
 
@@ -179,18 +204,39 @@ testInterceptor.alias("test");
 使用此方法创建的属性，将会在API服务器的`/api/status`接口中返回。
 
 ```typescript
-import Interceptor from "src/interceptor/interceptor";
-import { callLimiter } from "./bot";
+import { Interceptor } from "piggy-bro";
 
 const testInterceptor = new Interceptor("test");
 // 展示请求此属性时的时间
 testInterceptor.attribute("now", () => new Date(), "当前时间");
 // 每次调用时计数器+1；提供一个已调用次数的属性供用户查询
-testInterceptor.attribute("used", ({ id }) => callLimiter.check(`room_${id}`, "test"), "已调用次数")
-    .check(message => message.text().toLowerCase() === "test")
-    .handler(async (message) => {
-        if (message.room()) await callLimiter.record(`room_${message.room().id}`, "test");
+testInterceptor.attribute("used", (context, { id }) => context.callLimiter.check(`room_${id}`, "test"), "已调用次数")
+    .check((context, message) => message.text().toLowerCase() === "test")
+    .handler(async (context, message) => {
+        if (message.room()) await context.callLimiter.record(`room_${message.room().id}`, "test");
     });
 ```
 
 使用`.$attributes()`方法可以获取当前拦截器已注册的所有属性值。
+
+## 在二师兄机器人中启用拦截器
+
+当您编写好一个拦截器后，您一定想要在机器人中启用它。
+
+想要启用一个拦截器，您需要在`/data/config/interceptor.json`的`enable`节中，填写您要启用的拦截器。
+
+你可以用以下两种方式指定拦截器：
+
+1. 使用绝对路径
+
+   填写一个绝对路径（如`C:/interceptor/my-interceptor`），即可指定启用对应的文件（或文件夹下的`index.js`）的拦截器。
+
+   这种方式适用于从外部来源下载第三方拦截器的引入方式。
+
+2. 使用名称
+
+   填写一个非绝对路径（如`help`），程序会自动在`data/interceptor`目录下搜寻该拦截器，如果找到将直接读取；否则，将会从内置的拦截器中寻找。
+
+请注意，无论您使用何种引入方式，您都需要单独为拦截器运行`npm install`之类的命令来安装其依赖，否则这些拦截器可能无法运行。
+
+填写不存在的拦截器将会跳过，并不会阻止机器人启动。

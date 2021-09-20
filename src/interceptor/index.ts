@@ -1,39 +1,83 @@
 import {MessageProcessor} from "../lib/MessageProcessor";
-import {template} from "../bot";
+import {
+    __build_dir,
+    __data_dir,
+    __interceptor_dir,
+    __src_dir,
+    callLimiter,
+    sqliteTemplate,
+    template,
+    wechaty
+} from "../bot";
+import path from "path";
+import fs from "fs";
+import Context from "../lib/Context";
+import {isAbsolute} from "../lib/Util";
 
-const mp = new MessageProcessor()
+const context = new Context({
+    bot: wechaty,
+    sqliteTemplate: sqliteTemplate,
+    template: template,
+    callLimiter: callLimiter,
+    __data_dir: __data_dir,
+    __src_dir: __src_dir,
+    __build_dir: __build_dir,
+    __interceptor_dir: __interceptor_dir
+})
+const mp = new MessageProcessor(context)
+
 mp.on("error", (message, error) => {
     if (error.message === "ERR_CANNOT_GET_KEY")
-        return template.use("error.api.key.missing")
+        return context.template.use("error.api.key.missing")
     else if (error.message === "ERR_CALL_LIMIT")
-        return template.use("error.api.call.limit")
+        return context.template.use("error.api.call.limit")
     else if (error.message === "ERR_CALL_NO_PERMISSION")
-        return template.use("error.api.call.no_permission")
+        return context.template.use("error.api.call.no_permission")
     else {
-        console.error(template.use("on.error"))
+        console.error(context.template.use("on.error"))
         console.error(error)
-        return template.use("error.unknown")
+        return context.template.use("error.unknown")
     }
 })
 
-import garden from "./method/garden"
-import help from "./method/help"
-import hello from "./method/hello"
-import idiom from "./method/idiom"
-import joke from "./method/joke"
-import weibo from "./method/weibo"
-import weather from "./method/weather"
-import neteaseCloudMusic from "./method/netease-cloud-music"
-import wordPuzzle from "./method/word-puzzle";
+interface InterceptorConfig {
+    enable: string[]
+}
 
-mp.interceptor(garden)
-mp.interceptor(help)
-mp.interceptor(hello)
-mp.interceptor(idiom)
-mp.interceptor(joke)
-mp.interceptor(weibo)
-mp.interceptor(weather)
-mp.interceptor(neteaseCloudMusic)
-mp.interceptor(wordPuzzle)
+const interceptorConfig: InterceptorConfig = (function () {
+    try {
+        return JSON.parse(fs.readFileSync(path.join(context.__data_dir, "./config/interceptor.json"), "utf-8")) as InterceptorConfig
+    } catch {
+        return {} as InterceptorConfig
+    }
+})()
+const enabledInterceptorList = interceptorConfig.enable || []
+const loadInterceptor = async function () {
+    let count = 0;
+    for (const n of enabledInterceptorList) {
+        const interceptor = await (async function () {
+            try {
+                if (isAbsolute(n)) return (await import(n)).default;
+                else if (fs.existsSync(path.join(__data_dir, `./interceptor/${n}`))) return (await import(path.join(__data_dir, `./interceptor/${n}`))).default;
+                else if (fs.existsSync(path.join(__data_dir, `./interceptor/${n}.js`))) return (await import(path.join(__data_dir, `./interceptor/${n}.js`))).default;
+                return (await import(`./method/${n}`)).default;
+            } catch (e) {
+                console.warn(`Error occurred when import interceptor "${n}":`);
+                console.warn(e);
+                return null;
+            }
+        })();
+        try {
+            await mp.interceptor(interceptor);
+            count++;
+        } catch (e) {
+            console.warn(`Error occurred when regist interceptor "${n}":`);
+            console.warn(e);
+        }
+
+    }
+    console.log(context.template.use("on.load.finish", { count }));
+}
+void loadInterceptor();
 
 export {mp}

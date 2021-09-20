@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import {__data_dir} from "../bot";
 
 export function mkdirSync(dirPath: string) {
     if (dirPath === null || dirPath === "") return
@@ -20,22 +19,8 @@ export function mkdirSync(dirPath: string) {
     fs.mkdirSync(dirPath)
 }
 
-function isAbsolute(filePath: string) {
+export function isAbsolute(filePath: string) {
     filePath = path.normalize(filePath)
     if (filePath.substring(0, 1) === "/") return true
     return filePath.search(/[\w]+:/) === 0
-
-}
-
-export function getMethodConfig<T extends {} = {}>(name: string) {
-    try {
-        const configPath = path.join(__data_dir, `config/method/${name}.json`)
-        if (fs.existsSync(configPath)) {
-            const fileData = fs.readFileSync(configPath, "utf-8")
-            return JSON.parse(fileData) as T
-        }
-    } catch {
-
-    }
-    return {} as T
 }
