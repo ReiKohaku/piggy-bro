@@ -39,7 +39,7 @@ export default class Template {
             originalValue
         if (args) return value.replace(/{.*?}/g, function (match) {
             const matchedArg = match.match(/{(.*)}/)[1]
-            if (args[matchedArg]) return args[matchedArg]
+            if (args[matchedArg] || (typeof args[matchedArg] === "number" && args[matchedArg] === 0)) return args[matchedArg]
             else return match
         })
         else return value
