@@ -3,7 +3,7 @@ import {
     __build_dir,
     __data_dir,
     __interceptor_dir,
-    __src_dir,
+    __src_dir, botConfig,
     callLimiter,
     sqliteTemplate,
     template,
@@ -16,6 +16,7 @@ import {isAbsolute} from "../lib/Util";
 
 const context = new Context({
     bot: wechaty,
+    config: botConfig,
     sqliteTemplate: sqliteTemplate,
     template: template,
     callLimiter: callLimiter,
@@ -40,18 +41,7 @@ mp.on("error", (message, error) => {
     }
 })
 
-interface InterceptorConfig {
-    enable: string[]
-}
-
-const interceptorConfig: InterceptorConfig = (function () {
-    try {
-        return JSON.parse(fs.readFileSync(path.join(context.__data_dir, "./config/interceptor.json"), "utf-8")) as InterceptorConfig
-    } catch {
-        return {} as InterceptorConfig
-    }
-})()
-const enabledInterceptorList = interceptorConfig.enable || []
+const enabledInterceptorList = botConfig.interceptor.enable || []
 const loadInterceptor = async function () {
     let count = 0;
     for (const n of enabledInterceptorList) {

@@ -1,17 +1,52 @@
 import fs from "fs";
+import path from "path";
 
 import "./better-console"
 
 import {Wechaty, Message, Contact} from "wechaty"
 import qrcodeTerminal from "qrcode-terminal";
 
-import path from "path"
 import {mkdirSync} from "./lib/Util";
 export const __data_dir = path.join(__dirname, "../data")
 export const __interceptor_dir = path.join(__dirname, "./interceptor")
 export const __build_dir = __dirname
 export const __src_dir = path.join(__dirname, "../src")
 mkdirSync(__data_dir)
+
+export interface BotConfig {
+    interceptor: {
+        enable: string[]
+    }
+    server: {
+        port: number
+    }
+}
+const defaultBotConfig: BotConfig = {
+    interceptor: {
+        enable: ["hello", "garden"]
+    },
+    server: {
+        port: 8088
+    }
+}
+function loadBotConfig () {
+    if (!fs.existsSync(path.join(__data_dir, "./config/bot.json"))) {
+        console.warn("Bot config is not exists, will use default config.")
+        return {} as BotConfig
+    }
+    try {
+        return JSON.parse(fs.readFileSync(path.join(__data_dir, "./config/bot.json"), "utf-8")) as BotConfig
+    } catch (e) {
+        console.warn("Load bot config error, will use default config.")
+        console.warn(e)
+        return {} as BotConfig
+    }
+}
+const botConfig: BotConfig = {
+    ...defaultBotConfig,
+    ...loadBotConfig()
+}
+export {botConfig}
 
 import SqliteTemplate from "./lib/SqliteTemplate";
 const sqliteTemplate = new SqliteTemplate(path.join(__data_dir, "./database.db"))
@@ -30,17 +65,7 @@ import "./template"
 
 // 启动http服务器
 import server from "./server"
-interface ServerConfig {
-    port?: number
-}
-const serverConfig: ServerConfig = (function () {
-    try {
-        return JSON.parse(fs.readFileSync(path.join(__data_dir, "./config/server.json"), "utf-8")) as ServerConfig
-    } catch {
-        return {} as ServerConfig
-    }
-})()
-server(serverConfig.port || 8088)
+server(botConfig.server.port)
 
 // 引入拦截器
 import {mp} from "./interceptor";

@@ -11,9 +11,11 @@ import Template from "./Template";
 import CallLimiter from "./CallLimiter";
 import path from "path";
 import fs from "fs";
+import {BotConfig} from "../bot";
 
 export default class Context {
     bot: Wechaty
+    config: BotConfig
     sqliteTemplate: SqliteTemplate
     template: Template
     callLimiter: CallLimiter
@@ -24,6 +26,7 @@ export default class Context {
 
     constructor(mem: {
         bot: Wechaty,
+        config: BotConfig,
         sqliteTemplate: SqliteTemplate,
         template: Template,
         callLimiter: CallLimiter
