@@ -11,7 +11,7 @@ import Template from "./Template";
 import CallLimiter from "./CallLimiter";
 import path from "path";
 import fs from "fs";
-import {BotConfig} from "../bot";
+import {BotConfig} from "./BotConfig";
 
 export default class Context {
     bot: Wechaty

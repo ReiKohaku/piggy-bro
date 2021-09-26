@@ -1,9 +1,10 @@
 import {MessageProcessor} from "../lib/MessageProcessor";
+import {loadBotConfig} from "../lib/BotConfig";
 import {
     __build_dir,
     __data_dir,
     __interceptor_dir,
-    __src_dir, botConfig,
+    __src_dir,
     callLimiter,
     sqliteTemplate,
     template,
@@ -14,6 +15,7 @@ import fs from "fs";
 import Context from "../lib/Context";
 import {isAbsolute} from "../lib/Util";
 
+const botConfig = loadBotConfig();
 const context = new Context({
     bot: wechaty,
     config: botConfig,
