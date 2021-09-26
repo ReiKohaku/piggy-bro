@@ -17,6 +17,7 @@
 | 变量名            | 类型           | 备注                 |
 | ----------------- | -------------- | -------------------- |
 | bot               | Wechaty        | Wechaty机器人变量    |
+| config            | BotConfig      | 二师兄机器人配置     |
 | template          | Template       | 应答模板             |
 | sqliteTemplate    | SqliteTemplate | SQLite3操作类        |
 | callLimiter       | CallLimiter    | 调用计数器           |
@@ -24,3 +25,5 @@
 | __interceptor_dir | string         | 机器人内置拦截器目录 |
 | __build_dir       | string         | 机器人构建目录       |
 | __src_dir         | string         | 机器人源码目录       |
+
+关于它们中一些工具的用法，请参见[工具](util.md)。
