@@ -223,7 +223,7 @@ testInterceptor.attribute("used", (context, { id }) => context.callLimiter.check
 
 当您编写好一个拦截器后，您一定想要在机器人中启用它。
 
-想要启用一个拦截器，您需要在`/data/config/interceptor.json`的`enable`节中，填写您要启用的拦截器。
+想要启用一个拦截器，您需要在`/data/config/bot.json`中`interceptor`的`enable`节中，填写您要启用的拦截器。
 
 你可以用以下两种方式指定拦截器：
 
