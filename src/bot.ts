@@ -1,3 +1,5 @@
+import fs from "fs";
+
 import "./better-console"
 
 import {Wechaty, Message, Contact} from "wechaty"
@@ -28,7 +30,17 @@ import "./template"
 
 // 启动http服务器
 import server from "./server"
-server()
+interface ServerConfig {
+    port?: number
+}
+const serverConfig: ServerConfig = (function () {
+    try {
+        return JSON.parse(fs.readFileSync(path.join(__data_dir, "./config/server.json"), "utf-8")) as ServerConfig
+    } catch {
+        return {} as ServerConfig
+    }
+})()
+server(serverConfig.port || 8088)
 
 // 引入拦截器
 import {mp} from "./interceptor";
