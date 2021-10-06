@@ -27,7 +27,7 @@ export class MessageProcessor {
         const usedName = this.interceptors.map(i => i.$name)
         const usedTitle = this.interceptors.map(i => i.$title)
         const usedAlias = []
-        this.interceptors.map(i => i.$alias).forEach(a => usedAlias.push(...a))
+        this.interceptors.map(i => i.$alias).forEach(a => a ? usedAlias.push(...a) : void 0)
         const verifyExists = (str: string) => {
             if (usedName.includes(str)) throw new Error(`Cannot insert interceptor: ${str} already exists as an interceptor name`)
             if (usedTitle.includes(str)) throw new Error(`Cannot insert interceptor: ${str} already exists as an interceptor title`)
@@ -62,6 +62,7 @@ export class MessageProcessor {
             try {
                 let checkResult: boolean = true
                 let checkerArgs: Record<string, any> = {}
+                if (!i.$check || !i.$check.length) continue
                 for (const checker of i.$check) {
                     const result = await checker(this.context, message, checkerArgs)
                     if (!result) {
@@ -75,6 +76,7 @@ export class MessageProcessor {
                 if (!checkResult) continue
 
                 const sentMessages: Array<Message | undefined> = []
+                if (!i.$handler || !i.$handler.length) return void 0
                 for (const handler of i.$handler) {
                     const result = await handler(this.context, message, checkerArgs)
                     if (typeof result === "string" && !result.length) continue
